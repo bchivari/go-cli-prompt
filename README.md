@@ -8,7 +8,4 @@
 
 [comment]: <> ([![Sourcegraph]&#40;https://sourcegraph.com/github.com/go-kit/kit/-/badge.svg&#41;]&#40;https://sourcegraph.com/github.com/go-kit/kit?badge&#41;)
 
-**go-cli-prompt** is a **programming toolkit** for building microservices
-(or elegant monoliths) in Go. We solve common problems in distributed
-systems and application architecture so you can focus on delivering
-business value.
+**go-cli-prompt** is a 
