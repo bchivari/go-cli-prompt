@@ -1,11 +1,9 @@
 # go-cli-prompt
 
-[comment]: <> (![GitHub Workflow Status]&#40;https://github.com/go-kit/kit/workflows/CI/badge.svg&#41;)
+![GitHub Workflow Status](https://github.com/bchivari/go-cli-prompt/workflows/CI/badge.svg)
 
-[comment]: <> ([!codecov]&#40;https://codecov.io/gh/go-kit/kit&#41;)
+[!codecov](https://codecov.io/gh/bchivari/go-cli-prompt)
 
-[comment]: <> ([![Go Report Card]&#40;https://goreportcard.com/badge/go-kit/kit&#41;]&#40;https://goreportcard.com/report/go-kit/kit&#41;)
-
-[comment]: <> ([![Sourcegraph]&#40;https://sourcegraph.com/github.com/go-kit/kit/-/badge.svg&#41;]&#40;https://sourcegraph.com/github.com/go-kit/kit?badge&#41;)
+[![Go Report Card](https://goreportcard.com/badge/github.com/bchivari/go-cli-prompt)](https://goreportcard.com/report/github.com/bchivari/go-cli-prompt)
 
 **go-cli-prompt** is a 
