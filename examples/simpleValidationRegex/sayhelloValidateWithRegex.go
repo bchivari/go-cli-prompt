@@ -8,9 +8,9 @@ import (
 
 func main() {
 	namePrompt := prompt.CliPrompt{
-		PromptMessage:        "Enter Name",
+		PromptMessage:       "Enter Name",
 		InputValidatorRegex: regexp.MustCompile(`^[a-zA-Z]*$`),
-		AllowNil: true,
+		AllowNil:            true,
 	}
 
 	// Try entering a number

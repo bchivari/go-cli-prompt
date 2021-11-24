@@ -7,7 +7,7 @@ import (
 
 func main() {
 	namePrompt := prompt.CliPrompt{
-		PromptMessage:        "Enter Name",
+		PromptMessage: "Enter Name",
 	}
 
 	// Blocks until valid input is received

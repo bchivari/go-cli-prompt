@@ -8,11 +8,11 @@ import (
 
 func main() {
 	namePrompt := prompt.CliPrompt{
-		PromptMessage:        "Name",
-		MapKey: "name",
+		PromptMessage: "Name",
+		MapKey:        "name",
 	}
 	age := prompt.CliPrompt{
-		PromptMessage:        "Age",
+		PromptMessage: "Age",
 		InputValidatorFunc: func(s string) bool {
 			i, err := strconv.Atoi(s)
 			if err != nil {
@@ -24,9 +24,8 @@ func main() {
 			return false
 		},
 		InvalidInputMessage: "Age should be between 0 - 150",
-		MapKey: "age",
+		MapKey:              "age",
 	}
-
 
 	var (
 		ret map[string]interface{}
@@ -38,5 +37,6 @@ func main() {
 		return
 	}
 
+	fmt.Printf("Got: %#v\n", ret)
 	fmt.Printf("Hello %v, you are %v years old!", ret["name"].(string), ret["age"].(string))
 }

@@ -9,10 +9,10 @@ import (
 
 func main() {
 	namePrompt := prompt.CliPrompt{
-		PromptMessage:        "Enter Name",
+		PromptMessage: "Enter Name",
 	}
 
-	ctx, _ := context.WithTimeout(context.Background(), time.Second * 5)
+	ctx, _ := context.WithTimeout(context.Background(), time.Second*5)
 
 	ret, err := namePrompt.DisplayWithContext(ctx)
 
