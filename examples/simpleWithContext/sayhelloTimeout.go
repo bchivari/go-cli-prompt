@@ -14,7 +14,7 @@ func main() {
 
 	ctx, _ := context.WithTimeout(context.Background(), time.Second*5)
 
-	ret, err := namePrompt.DisplayWithContext(ctx)
+	ret, err := namePrompt.ShowWithContext(ctx)
 
 	if err != nil {
 		fmt.Printf("Timed out!")

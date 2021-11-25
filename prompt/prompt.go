@@ -98,8 +98,8 @@ func (h *Prompt) Show() (interface{}, error) {
 	}
 }
 
-// DisplayWithContext - Same as Show but is context aware so can be canceled / timed out
-func (h *Prompt) DisplayWithContext(ctx context.Context) (interface{}, error) {
+// ShowWithContext - Same as Show but is context aware so can be canceled / timed out
+func (h *Prompt) ShowWithContext(ctx context.Context) (interface{}, error) {
 	resultChan, errChan := h.showAsync()
 	select {
 	case ret := <-resultChan:

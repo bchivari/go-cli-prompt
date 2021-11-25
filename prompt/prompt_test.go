@@ -748,7 +748,7 @@ func TestPrompt_DisplayWithContext(t *testing.T) {
 				inputReader:                tt.fields.inputReader,
 				scanner:                    tt.fields.scanner,
 			}
-			got, err := h.DisplayWithContext(tt.args.ctx)
+			got, err := h.ShowWithContext(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ShowWithContext() error = %v, wantErr %v", err, tt.wantErr)
 				return
