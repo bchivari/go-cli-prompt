@@ -76,7 +76,7 @@ var (
     err error
 )
 
-ret, err = prompt.MakePromptChain(namePrompt, agePrompt).Display()
+ret, err = prompt.MakePromptChain(namePrompt, agePrompt).Show()
 if err != nil {
     return
 }
@@ -111,7 +111,7 @@ namePrompt := prompt.CliPrompt{
 }
 
 // Try entering a number
-name := namePrompt.Display()
+name := namePrompt.Show()
 if name != nil {
     fmt.Printf("Hello %v!", name.(string))
 }
@@ -153,7 +153,7 @@ ipPrompt := prompt.CliPrompt{
     InvalidInputMessage: "Not a valid IP address",
 }
 
-ret := ipPrompt.Display()
+ret := ipPrompt.Show()
 
 fmt.Printf("IP is %v!", ret.(net.IP))
 ```
