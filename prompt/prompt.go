@@ -26,8 +26,8 @@ const (
 
 var (
 	// Errors
-	errMissingKey      = errors.New("'MapKey' field is missing from one more more CliPrompts")
-	inputErrorTemplate = "got irrecoverable input error: %v"
+	errMissingKey       = errors.New("'MapKey' field is missing from one more more CliPrompts")
+	inputErrorTemplate  = "got irrecoverable input error: %v"
 	defaultOutputWriter = os.Stdout
 	defaultInputReader  = os.Stdin
 )
