@@ -1,4 +1,4 @@
-module go-cli-prompt
+module github.com/bchivari/go-cli-prompt
 
 go 1.17
 

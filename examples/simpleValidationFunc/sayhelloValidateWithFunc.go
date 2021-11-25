@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"go-cli-prompt/prompt"
+	"github.com/bchivari/go-cli-prompt/prompt"
 	"net"
 )
 

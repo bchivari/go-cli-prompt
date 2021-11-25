@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"go-cli-prompt/prompt"
+	"github.com/bchivari/go-cli-prompt/prompt"
 	"time"
 )
 
