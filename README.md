@@ -26,15 +26,16 @@ supplied.
 
 *Code*
 ```golang
-namePrompt := prompt.CliPrompt{
-    PromptMessage: "Enter Name", 
-    AllowNil: false,
+namePrompt := prompt.Prompt{
+    PromptMessage: "Enter Name",
+    AllowNil:      false,
 }
 
 // Blocks & re-prompts until valid input is received
-name := namePrompt.Display()
-
-fmt.Printf("Hello %v!", name.(string))
+name, err := namePrompt.Show()
+if err != nil {
+    fmt.Printf("Hello %v!", name.(string))
+}
 ```
 
 *Output*
@@ -176,12 +177,10 @@ IP is 192.168.1.1!
 ### More examples
 * [See code...](https://github.com/bchivari/go-cli-prompt/tree/master/examples)
 
-## Help
+## Full Documentation
 
-Any advise for common problems or issues.
-```
-command to run if program contains helper info
-```
+[![Go Reference](https://pkg.go.dev/badge/golang.org/x/example.svg)](https://pkg.go.dev/golang.org/x/example)
+
 
 ## Authors
 

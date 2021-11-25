@@ -6,12 +6,14 @@ import (
 )
 
 func main() {
-	namePrompt := prompt.CliPrompt{
+	namePrompt := prompt.Prompt{
 		PromptMessage: "Enter Name",
+		AllowNil:      false,
 	}
 
-	// Blocks until valid input is received
-	ret := namePrompt.Display()
-
-	fmt.Printf("Hello %v!", ret.(string))
+	// Blocks & re-prompts until valid input is received
+	name, err := namePrompt.Show()
+	if err != nil {
+		fmt.Printf("Hello %v!", name.(string))
+	}
 }

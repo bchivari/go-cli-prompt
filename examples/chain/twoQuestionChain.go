@@ -7,11 +7,11 @@ import (
 )
 
 func main() {
-	namePrompt := prompt.CliPrompt{
+	namePrompt := prompt.Prompt{
 		PromptMessage: "Name",
 		MapKey:        "name",
 	}
-	age := prompt.CliPrompt{
+	age := prompt.Prompt{
 		PromptMessage: "Age",
 		InputValidatorFunc: func(s string) bool {
 			i, err := strconv.Atoi(s)
@@ -32,7 +32,7 @@ func main() {
 		err error
 	)
 
-	ret, err = prompt.MakePromptChain(namePrompt, age).Display()
+	ret, err = prompt.MakePromptList(namePrompt, age).Show()
 	if err != nil {
 		return
 	}

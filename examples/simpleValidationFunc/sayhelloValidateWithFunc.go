@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	ipPrompt := prompt.CliPrompt{
+	ipPrompt := prompt.Prompt{
 		PromptMessage:   "IP Address",
 		DefaultAsString: "192.168.1.1",
 		InputValidatorFunc: func(s string) bool {
@@ -28,7 +28,7 @@ func main() {
 	}
 
 	// Try entering a string with a "!"
-	ret := ipPrompt.Display()
+	ret, _ := ipPrompt.Show()
 
 	fmt.Printf("IP is %v!", ret.(net.IP))
 }

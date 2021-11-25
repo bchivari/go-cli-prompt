@@ -22,55 +22,56 @@ const (
 	errorEchoInputTemplate     = "\n%v [%v]\n\n"
 	defaultInvalidInputMessage = "Invalid Input"
 	defaultPromptMessageDelim  = ": "
-	ioErrorMessage             = "I/O Error"
 )
 
 var (
+	// Errors
 	missingKeyError     = errors.New("'MapKey' field is missing from one more more CliPrompts")
+	inputErrorTemplate  = "got irrecoverable input error: %v"
 	defaultOutputWriter = os.Stdout
 	defaultInputReader  = os.Stdin
 )
 
-// CliPrompt The main struct that defines how a prompt is displayed and handled
+// Prompt The main struct that defines how a prompt is displayed and handled
 // If both DefaultAsString and OutputSerializerFunc are set, the default string
 // should be serializable via the OutputSerializerFunc
-type CliPrompt struct {
-	PromptMessage              string                         // The message prompt text displayed to user
-	AllowNil                   bool                           // If this prompt accepts nil as allowable input
-	IsPassword                 bool                           // If set, will suppress echoing of input to terminal
-	InvalidInputMessage        string                         // Message displayed if InputValidatorFunc returns false, or nil is provided but not accepted by setting AllowNil
-	DefaultAsString            string                         // The default value if the user just hits enter without providing input
-	InputValidatorFunc         validation.InputValidator      // Function which validates the input string. If both InputValidatorFunc and InputValidatorRegex are provided both are tested, and both must pass for input to be valid
-	InputValidatorRegex        *regexp.Regexp                 // Regex used to validate the input
-	OutputSerializerFunc       serialization.OutputSerializer // Function which converts the input string into a desired type returned as interface{}
-	MapKey                     string                         // If utilizing a CliPromptChain, this string is used as a key in the map[string]interface{} returned by Display()
-	PromptMessageDelim         string                         // The string/character displayed after the PromptMessage. This will default to ": "
-	SuppressTrimWhitespace     bool                           // By default, both leading and trailing whitespace are trimmed from all input strings, unless IsPassword is set, before validation. Setting SuppressTrimWhitespace will disable this behavior
-	SuppressEchoInputOnInvalid bool                           // By default, input that fails validation will echod back as part of the error message. Setting SuppressEchoInputOnInvalid will disable this behavior
+type Prompt struct {
+	PromptMessage       string // The message prompt text displayed to user
+	AllowNil            bool   // If this prompt accepts nil as allowable input
+	IsPassword          bool   // If set, will suppress echoing of input to terminal
+	InvalidInputMessage string // Message displayed if InputValidatorFunc returns false, or nil is provided but not accepted by setting AllowNil
+	DefaultAsString     string // The default value if the user just hits enter without providing input
+	MapKey              string // If utilizing a PromptList, this string is used as a key in the map[string]interface{} returned by Show()
+
+	InputValidatorFunc   validation.InputValidator      // Function which validates the input string. If both InputValidatorFunc and InputValidatorRegex are provided both are tested, and both must pass for input to be valid
+	InputValidatorRegex  *regexp.Regexp                 // Regex used to validate the input
+	OutputSerializerFunc serialization.OutputSerializer // Function which converts the input string into a desired type returned as interface{}
+
+	PromptMessageDelim         string // The string/character displayed after the PromptMessage. This will default to ": "
+	SuppressTrimWhitespace     bool   // By default, both leading and trailing whitespace are trimmed from all input strings, unless IsPassword is set, before validation. Setting SuppressTrimWhitespace will disable this behavior
+	SuppressEchoInputOnInvalid bool   // By default, input that fails validation will echod back as part of the error message. Setting SuppressEchoInputOnInvalid will disable this behavior
 
 	outputWriter io.Writer // Advanced option so not exposed; Defaults to os.Stdout; Set with SetOption(WithWriter)
 	inputReader  io.Reader // Advanced option so not exposed; Defaults to os.Stdin; Set with SetOption(WithReader)
-	//scanner      *bufio.Scanner
-	scanner scanner
+	scanner      scanner   // bufio.Scanner wrapped in interface for Mocking / Testing
 }
 
-// Display Displays a single CliPrompt and will return the supplied value. Blocks forever until valid input is received
-func (h *CliPrompt) Display() interface{} {
+// Show Displays a single Prompt and will return the supplied value. Blocks forever until valid input is received
+func (h *Prompt) Show() (interface{}, error) {
 	h.initializeScanner()
 	for {
-		h.displayPrompt()
+		h.showPrompt()
 		userInput, err := h.readInput()
+		// Irrecoverable Input Error
 		if err != nil {
-			fmt.Fprintln(h.getOutputWriter(), ioErrorMessage)
-			continue
+			return nil, fmt.Errorf(inputErrorTemplate, err.Error())
 		}
-
 		// Got input
 		if len(userInput) != 0 {
 			if h.isValidInput(userInput) {
 				serializedResp, err := h.serializeIfRequired(userInput)
 				if err == nil && serializedResp != nil {
-					return serializedResp
+					return serializedResp, nil
 				}
 			}
 			h.displayInvalidInputMessage(userInput)
@@ -81,11 +82,11 @@ func (h *CliPrompt) Display() interface{} {
 				if err != nil {
 					fmt.Fprintf(h.getOutputWriter(), fmt.Sprintf("Default value cannot be serialized, This shouldn't happen. %v", err))
 				} else {
-					return defaultSerialized
+					return defaultSerialized, nil
 				}
 			}
 			if h.AllowNil && !h.hasDefault() {
-				return nil
+				return nil, nil
 			}
 			if h.shouldEchoInput() {
 				fmt.Fprintf(h.getOutputWriter(), errorEchoInputTemplate, h.getInvalidInputMessage(), "null")
@@ -97,51 +98,59 @@ func (h *CliPrompt) Display() interface{} {
 	}
 }
 
-// DisplayWithContext - Same as Display but is context aware so can be canceled / timed out
-func (h *CliPrompt) DisplayWithContext(ctx context.Context) (interface{}, error) {
+// DisplayWithContext - Same as Show but is context aware so can be canceled / timed out
+func (h *Prompt) DisplayWithContext(ctx context.Context) (interface{}, error) {
+	resultChan, errChan := h.showAsync()
 	select {
-	case ret := <-h.displayAsync():
+	case ret := <-resultChan:
 		return ret, nil
+	case err := <-errChan:
+		return nil, err
 	case <-ctx.Done():
 		return nil, errors.New("call was canceled by context")
 	}
 }
 
-func (h *CliPrompt) displayAsync() <-chan interface{} {
+func (h *Prompt) showAsync() (<-chan interface{}, <-chan error) {
 	resultChan := make(chan interface{})
+	errorChan := make(chan error)
 	go func() {
-		resultChan <- h.Display()
+		ret, err := h.Show()
+		if err != nil {
+			errorChan <- err
+		}
+		resultChan <- ret
 	}()
-	return resultChan
+	return resultChan, errorChan
 }
 
-// CliPromptChain represents a collection of CliPrompts; Used by (*CliPromptChain) Display for displaying prompts in series and collecting responses as a map
-type CliPromptChain []CliPrompt
+// PromptList represents a collection of CliPrompts; Used by (*PromptList) Show for displaying prompts in series and collecting responses as a map
+type PromptList []Prompt
 
-// MakePromptChain is a helper function used to assemble a CliPromptChain from individual CliPrompt instances
-func MakePromptChain(prompts ...CliPrompt) *CliPromptChain {
-	var chain CliPromptChain
+// MakePromptList is a helper function used to assemble a PromptList from individual Prompt instances
+func MakePromptList(prompts ...Prompt) *PromptList {
+	var l PromptList
 	for _, p := range prompts {
-		chain = append(chain, p)
+		l = append(l, p)
 	}
-	return &chain
+	return &l
 }
 
-// Display displays all prompts in the CliPromptChain in succession and returns all responses as a map. Blocks forever until valid input is received for all prompts
-func (c *CliPromptChain) Display() (map[string]interface{}, error) {
+// Show displays all prompts in the PromptList in succession and returns all responses as a map. Blocks forever until valid input is received for all prompts
+func (c *PromptList) Show() (map[string]interface{}, error) {
 	ret := make(map[string]interface{})
 	for _, p := range *c {
 		if p.MapKey == "" {
 			return nil, missingKeyError
 		}
-		ret[p.MapKey] = p.Display()
+		ret[p.MapKey], _ = p.Show()
 	}
 	return ret, nil
 }
 
-// DisplayWithContext - Same as Display but is context aware so can be canceled / timed out
-func (c *CliPromptChain) DisplayWithContext(ctx context.Context) (map[string]interface{}, error) {
-	resultChan, errChan := c.displayAsync()
+// ShowWithContext - Same as Show but is context aware so can be canceled / timed out
+func (c *PromptList) ShowWithContext(ctx context.Context) (map[string]interface{}, error) {
+	resultChan, errChan := c.showAsync()
 	select {
 	case ret := <-resultChan:
 		return ret, nil
@@ -153,11 +162,11 @@ func (c *CliPromptChain) DisplayWithContext(ctx context.Context) (map[string]int
 	}
 }
 
-func (c *CliPromptChain) displayAsync() (<-chan map[string]interface{}, <-chan error) {
+func (c *PromptList) showAsync() (<-chan map[string]interface{}, <-chan error) {
 	resultChan := make(chan map[string]interface{})
 	errChan := make(chan error)
 	go func() {
-		result, err := c.Display()
+		result, err := c.Show()
 		if err != nil {
 			errChan <- err
 		}
@@ -166,14 +175,14 @@ func (c *CliPromptChain) displayAsync() (<-chan map[string]interface{}, <-chan e
 	return resultChan, errChan
 }
 
-func (h *CliPrompt) serializeIfRequired(input string) (interface{}, error) {
+func (h *Prompt) serializeIfRequired(input string) (interface{}, error) {
 	if h.OutputSerializerFunc == nil {
 		return input, nil
 	}
 	return h.OutputSerializerFunc(input)
 }
 
-func (h *CliPrompt) displayPrompt() {
+func (h *Prompt) showPrompt() {
 	if h.hasDefault() {
 		fmt.Fprintf(h.getOutputWriter(), promptWithDefaultTemplate, h.PromptMessage, h.DefaultAsString, h.getDelim())
 	} else {
@@ -181,79 +190,79 @@ func (h *CliPrompt) displayPrompt() {
 	}
 }
 
-func (h *CliPrompt) getDelim() string {
+func (h *Prompt) getDelim() string {
 	if h.PromptMessageDelim != "" {
 		return h.PromptMessageDelim
 	}
 	return defaultPromptMessageDelim
 }
 
-func (h *CliPrompt) getOutputWriter() io.Writer {
+func (h *Prompt) getOutputWriter() io.Writer {
 	if h.outputWriter != nil {
 		return h.outputWriter
 	}
 	return defaultOutputWriter
 }
 
-func (h *CliPrompt) getInputReader() io.Reader {
+func (h *Prompt) getInputReader() io.Reader {
 	if h.inputReader != nil {
 		return h.inputReader
 	}
 	return defaultInputReader
 }
 
-func (h *CliPrompt) getInvalidInputMessage() string {
+func (h *Prompt) getInvalidInputMessage() string {
 	if h.InvalidInputMessage != "" {
 		return h.InvalidInputMessage
 	}
 	return defaultInvalidInputMessage
 }
 
-func (h *CliPrompt) shouldEchoInput() bool {
+func (h *Prompt) shouldEchoInput() bool {
 	if h.SuppressEchoInputOnInvalid {
 		return false
 	}
 	return true
 }
 
-func (h *CliPrompt) hasDefault() bool {
+func (h *Prompt) hasDefault() bool {
 	return h.DefaultAsString != ""
 }
 
-func (h *CliPrompt) isValidInput(s string) bool {
+func (h *Prompt) isValidInput(s string) bool {
 	if h.validateAgainstRegexIfProvided(s) && h.validateAgainstFuncIfProvided(s) {
 		return true
 	}
 	return false
 }
 
-func (h *CliPrompt) validateAgainstRegexIfProvided(s string) bool {
+func (h *Prompt) validateAgainstRegexIfProvided(s string) bool {
 	if h.InputValidatorRegex != nil {
 		return h.InputValidatorRegex.MatchString(s)
 	}
 	return true
 }
 
-func (h *CliPrompt) validateAgainstFuncIfProvided(s string) bool {
+func (h *Prompt) validateAgainstFuncIfProvided(s string) bool {
 	if h.InputValidatorFunc != nil {
 		return h.InputValidatorFunc(s)
 	}
 	return true
 }
 
-func (h *CliPrompt) readInput() (string, error) {
+func (h *Prompt) readInput() (string, error) {
 	if !h.IsPassword {
 		return h.readRegularInput()
 	} else {
 		defer func() {
-			// Print blank line; Non-echoing password reader requires this
+			// Print blank line after input is received since a non-echoing password reader won't show newline
 			fmt.Fprintln(h.getOutputWriter(), "")
 		}()
 		return h.readPasswordInput()
 	}
 }
 
-func (h *CliPrompt) readPasswordInput() (string, error) {
+func (h *Prompt) readPasswordInput() (string, error) {
 	if h.inputReader != nil {
 		return h.readPasswordFromIoReader()
 	} else {
@@ -261,7 +270,7 @@ func (h *CliPrompt) readPasswordInput() (string, error) {
 	}
 }
 
-func (h *CliPrompt) readPasswordFromStdin() (string, error) {
+func (h *Prompt) readPasswordFromStdin() (string, error) {
 	bytePassword, err := term.ReadPassword(int(syscall.Stdin))
 	fmt.Fprintln(h.getOutputWriter(), "")
 	if err != nil {
@@ -270,7 +279,7 @@ func (h *CliPrompt) readPasswordFromStdin() (string, error) {
 	return string(bytePassword), nil
 }
 
-func (h *CliPrompt) readPasswordFromIoReader() (string, error) {
+func (h *Prompt) readPasswordFromIoReader() (string, error) {
 	var password []byte
 	if file, ok := h.inputReader.(*os.File); ok && term.IsTerminal(int(file.Fd())) {
 		password, err := term.ReadPassword(int(file.Fd()))
@@ -286,7 +295,7 @@ func (h *CliPrompt) readPasswordFromIoReader() (string, error) {
 	return string(password), nil
 }
 
-func (h *CliPrompt) readRegularInput() (string, error) {
+func (h *Prompt) readRegularInput() (string, error) {
 	h.scanner.Scan()
 	if h.SuppressTrimWhitespace {
 		return h.scanner.Text(), h.scanner.Err()
@@ -294,7 +303,7 @@ func (h *CliPrompt) readRegularInput() (string, error) {
 	return strings.TrimSpace(h.scanner.Text()), h.scanner.Err()
 }
 
-func (h *CliPrompt) displayInvalidInputMessage(response string) {
+func (h *Prompt) displayInvalidInputMessage(response string) {
 	if h.shouldEchoInput() {
 		fmt.Fprintf(h.getOutputWriter(), errorEchoInputTemplate, h.getInvalidInputMessage(), response)
 		return
@@ -302,7 +311,7 @@ func (h *CliPrompt) displayInvalidInputMessage(response string) {
 	fmt.Fprintf(h.getOutputWriter(), errorTemplate, h.getInvalidInputMessage())
 }
 
-func (h *CliPrompt) initializeScanner() {
+func (h *Prompt) initializeScanner() {
 	if h.scanner == nil {
 		h.scanner = newDefaultScanner(bufio.NewScanner(h.getInputReader()))
 	}

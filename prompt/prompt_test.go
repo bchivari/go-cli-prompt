@@ -23,20 +23,20 @@ func TestCliPromptChain_Display(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		p1      CliPrompt
-		p2      CliPrompt
+		p1      Prompt
+		p2      Prompt
 		want    map[string]interface{}
 		wantErr bool
 	}{
 		{
 			name: "Working Chain",
-			p1: CliPrompt{
+			p1: Prompt{
 				PromptMessage: promptMessage,
 				MapKey:        key1,
 				outputWriter:  new(bytes.Buffer),
 				inputReader:   bytes.NewBufferString(fmt.Sprintf("%v\n", responseText1)),
 			},
-			p2: CliPrompt{
+			p2: Prompt{
 				PromptMessage: promptMessage,
 				MapKey:        key2,
 				outputWriter:  new(bytes.Buffer),
@@ -47,13 +47,13 @@ func TestCliPromptChain_Display(t *testing.T) {
 		},
 		{
 			name: "Broken Chain",
-			p1: CliPrompt{
+			p1: Prompt{
 				PromptMessage: promptMessage,
 				MapKey:        key1,
 				outputWriter:  new(bytes.Buffer),
 				inputReader:   bytes.NewBufferString(fmt.Sprintf("%v\n", responseText1)),
 			},
-			p2: CliPrompt{
+			p2: Prompt{
 				PromptMessage: promptMessage,
 				outputWriter:  new(bytes.Buffer),
 				inputReader:   bytes.NewBufferString(fmt.Sprintf("%v\n", responseText2)),
@@ -65,13 +65,13 @@ func TestCliPromptChain_Display(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			chain := makeChain(tt.p1, tt.p2)
-			got, err := chain.Display()
+			got, err := chain.Show()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Display() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Show() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Display() got = %v, want %v", got, tt.want)
+				t.Errorf("Show() got = %v, wantText %v", got, tt.want)
 			}
 		})
 	}
@@ -90,20 +90,20 @@ func TestCliPromptChain_DisplayWithContext(t *testing.T) {
 	tests := []struct {
 		name    string
 		ctx     context.Context
-		p1      CliPrompt
-		p2      CliPrompt
+		p1      Prompt
+		p2      Prompt
 		want    map[string]interface{}
 		wantErr bool
 	}{
 		{
 			name: "With Timeout - Times out",
-			p1: CliPrompt{
+			p1: Prompt{
 				PromptMessage: promptMessage,
 				MapKey:        key1,
 				outputWriter:  new(bytes.Buffer),
 				inputReader:   bytes.NewBufferString(fmt.Sprintf("%v\n", responseText1)),
 			},
-			p2: CliPrompt{
+			p2: Prompt{
 				PromptMessage: promptMessage,
 				MapKey:        key2,
 				outputWriter:  new(bytes.Buffer),
@@ -115,13 +115,13 @@ func TestCliPromptChain_DisplayWithContext(t *testing.T) {
 		},
 		{
 			name: "Without Timeout",
-			p1: CliPrompt{
+			p1: Prompt{
 				PromptMessage: promptMessage,
 				MapKey:        key1,
 				outputWriter:  new(bytes.Buffer),
 				inputReader:   bytes.NewBufferString(fmt.Sprintf("%v\n", responseText1)),
 			},
-			p2: CliPrompt{
+			p2: Prompt{
 				PromptMessage: promptMessage,
 				MapKey:        key2,
 				outputWriter:  new(bytes.Buffer),
@@ -133,13 +133,13 @@ func TestCliPromptChain_DisplayWithContext(t *testing.T) {
 		},
 		{
 			name: "Without Timeout - Missing Key Error",
-			p1: CliPrompt{
+			p1: Prompt{
 				PromptMessage: promptMessage,
 				MapKey:        key1,
 				outputWriter:  new(bytes.Buffer),
 				inputReader:   bytes.NewBufferString(fmt.Sprintf("%v\n", responseText1)),
 			},
-			p2: CliPrompt{
+			p2: Prompt{
 				PromptMessage: promptMessage,
 				outputWriter:  new(bytes.Buffer),
 				inputReader:   bytes.NewBufferString(fmt.Sprintf("%v\n", responseText2)),
@@ -152,74 +152,49 @@ func TestCliPromptChain_DisplayWithContext(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			chain := makeChain(tt.p1, tt.p2)
-			got, err := chain.DisplayWithContext(tt.ctx)
+			got, err := chain.ShowWithContext(tt.ctx)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("DisplayWithContext() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("ShowWithContext() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("DisplayWithContext() got = %v, want %v", got, tt.want)
+				t.Errorf("ShowWithContext() got = %v, wantText %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func makeChain(prompts ...CliPrompt) *CliPromptChain {
-	return MakePromptChain(prompts...)
+func makeChain(prompts ...Prompt) *PromptList {
+	return MakePromptList(prompts...)
 }
 
-func TestCliPrompt_RealStdin(t *testing.T) {
+func TestPrompt_RealStdin(t *testing.T) {
 	var (
 		promptMessage = "Enter Name1"
 		writer        = new(bytes.Buffer)
-		p             = &CliPrompt{
+		p             = &Prompt{
 			PromptMessage: promptMessage,
 			AllowNil:      true,
 			outputWriter:  writer,
 		}
 	)
 
-	got := p.Display()
+	got, _ := p.Show()
 
 	time.Sleep(time.Millisecond * 100)
 	if !reflect.DeepEqual(got, nil) {
-		t.Errorf("DisplayWithContext() got = %v, want %v", got, nil)
+		t.Errorf("ShowWithContext() got = %v, wantText %v", got, nil)
 	}
 }
 
-type MockScanner struct {
-	calledPrev  bool
-	returnScan  bool
-	returnText  string
-	returnError error
-}
-
-func (s *MockScanner) Scan() bool {
-	return true
-}
-
-func (s *MockScanner) Err() error {
-	if !s.calledPrev {
-		s.calledPrev = true
-		return s.returnError
-	}
-	return nil
-}
-
-func (s *MockScanner) Text() string {
-	return s.returnText
-}
-
-func TestCliPrompt_Display(t *testing.T) {
+func TestPrompt_Display(t *testing.T) {
 	var (
 		promptMessage1              = "Enter Name1"
 		responseText                = "Bobby"
 		invalidInputMessage         = "badinput"
 		mockScanner         scanner = &MockScanner{
-			calledPrev:  false,
-			returnScan:  true,
-			returnText:  responseText + "\n",
-			returnError: fmt.Errorf("some scanner error"),
+			returnTextFifo: nil,
+			returnError:    fmt.Errorf("some scanner error"),
 		}
 	)
 
@@ -244,6 +219,7 @@ func TestCliPrompt_Display(t *testing.T) {
 		name                  string
 		fields                fields
 		want                  interface{}
+		wantErr               bool
 		wantOutputWriterRegex *regexp.Regexp
 	}{
 		{
@@ -286,8 +262,9 @@ func TestCliPrompt_Display(t *testing.T) {
 				inputReader:                bytes.NewBufferString(fmt.Sprintf("%v\n", responseText)),
 				scanner:                    mockScanner,
 			},
-			want:                  responseText,
-			wantOutputWriterRegex: regexp.MustCompile(`(?s)^.*Error.*$`),
+			want:                  nil,
+			wantErr:               true,
+			wantOutputWriterRegex: nil,
 		},
 		{
 			name: "Test using default Stdout",
@@ -598,7 +575,7 @@ func TestCliPrompt_Display(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := &CliPrompt{
+			h := &Prompt{
 				PromptMessage:              tt.fields.PromptMessage,
 				AllowNil:                   tt.fields.AllowNil,
 				IsPassword:                 tt.fields.IsPassword,
@@ -616,15 +593,20 @@ func TestCliPrompt_Display(t *testing.T) {
 				scanner:                    tt.fields.scanner,
 			}
 
-			if got := h.Display(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Display() = %v, want %v", got, tt.want)
-			}
+			got, err := h.Show()
 
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ShowWithContext() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Show() = %v, wantText %v", got, tt.want)
+			}
 			if tt.fields.outputWriter != nil && !strings.HasPrefix(tt.fields.outputWriter.(*bytes.Buffer).String(), tt.fields.PromptMessage) {
-				t.Errorf("Display() want stdout prefix = %v, got stdout prefix = %v", tt.fields.PromptMessage, tt.fields.outputWriter.(*bytes.Buffer).String())
+				t.Errorf("Show() wantText stdout prefix = %v, got stdout prefix = %v", tt.fields.PromptMessage, tt.fields.outputWriter.(*bytes.Buffer).String())
 			}
 			if tt.wantOutputWriterRegex != nil && !tt.wantOutputWriterRegex.MatchString(tt.fields.outputWriter.(*bytes.Buffer).String()) {
-				t.Errorf("Display() want outputwriter match on = %v, got content = %v", tt.wantOutputWriterRegex.String(), tt.fields.outputWriter.(*bytes.Buffer).String())
+				t.Errorf("Show() wantText outputwriter match on = %v, got content = %v", tt.wantOutputWriterRegex.String(), tt.fields.outputWriter.(*bytes.Buffer).String())
 			}
 			if tt.fields.outputWriter != nil {
 				fmt.Println(tt.fields.outputWriter.(*bytes.Buffer).String())
@@ -634,12 +616,16 @@ func TestCliPrompt_Display(t *testing.T) {
 	}
 }
 
-func TestCliPrompt_DisplayWithContext(t *testing.T) {
+func TestPrompt_DisplayWithContext(t *testing.T) {
 	var (
-		promptMessage     = "Enter Name"
-		responseText      = "Bobby"
-		ctxWithTimeout, _ = context.WithTimeout(context.Background(), time.Millisecond*250)
-		ctxWithoutTimeout = context.Background()
+		promptMessage             = "Enter Name"
+		responseText              = "Bobby"
+		ctxWithTimeout, _         = context.WithTimeout(context.Background(), time.Millisecond*250)
+		ctxWithoutTimeout         = context.Background()
+		mockScanner       scanner = &MockScanner{
+			returnTextFifo: nil,
+			returnError:    fmt.Errorf("some scanner error"),
+		}
 	)
 
 	type fields struct {
@@ -657,6 +643,7 @@ func TestCliPrompt_DisplayWithContext(t *testing.T) {
 		SuppressEchoInputOnInvalid bool
 		outputWriter               io.Writer
 		inputReader                io.Reader
+		scanner                    scanner
 	}
 	type args struct {
 		ctx context.Context
@@ -693,6 +680,31 @@ func TestCliPrompt_DisplayWithContext(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "Without Timeout - input error",
+			fields: fields{
+				PromptMessage:              promptMessage,
+				AllowNil:                   false,
+				IsPassword:                 false,
+				InvalidInputMessage:        "",
+				DefaultAsString:            "",
+				InputValidatorFunc:         nil,
+				InputValidatorRegex:        nil,
+				OutputSerializerFunc:       nil,
+				MapKey:                     "",
+				PromptMessageDelim:         "",
+				SuppressTrimWhitespace:     false,
+				SuppressEchoInputOnInvalid: false,
+				outputWriter:               new(bytes.Buffer),
+				inputReader:                bytes.NewBufferString(fmt.Sprintf("%v\n", responseText)),
+				scanner:                    mockScanner,
+			},
+			args: args{
+				ctx: ctxWithoutTimeout,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
 			name: "With Timeout",
 			fields: fields{
 				PromptMessage:              promptMessage,
@@ -719,7 +731,7 @@ func TestCliPrompt_DisplayWithContext(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := &CliPrompt{
+			h := &Prompt{
 				PromptMessage:              tt.fields.PromptMessage,
 				AllowNil:                   tt.fields.AllowNil,
 				IsPassword:                 tt.fields.IsPassword,
@@ -734,14 +746,15 @@ func TestCliPrompt_DisplayWithContext(t *testing.T) {
 				SuppressEchoInputOnInvalid: tt.fields.SuppressEchoInputOnInvalid,
 				outputWriter:               tt.fields.outputWriter,
 				inputReader:                tt.fields.inputReader,
+				scanner:                    tt.fields.scanner,
 			}
 			got, err := h.DisplayWithContext(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("DisplayWithContext() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("ShowWithContext() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("DisplayWithContext() got = %v, want %v", got, tt.want)
+				t.Errorf("ShowWithContext() got = %v, wantText %v", got, tt.want)
 			}
 		})
 	}
@@ -749,19 +762,19 @@ func TestCliPrompt_DisplayWithContext(t *testing.T) {
 
 func TestMakePromptChain(t *testing.T) {
 	type args struct {
-		prompts []CliPrompt
+		prompts []Prompt
 	}
 	tests := []struct {
 		name string
 		args args
-		want *CliPromptChain
+		want *PromptList
 	}{
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := MakePromptChain(tt.args.prompts...); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("MakePromptChain() = %v, want %v", got, tt.want)
+			if got := MakePromptList(tt.args.prompts...); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("MakePromptList() = %v, wantText %v", got, tt.want)
 			}
 		})
 	}

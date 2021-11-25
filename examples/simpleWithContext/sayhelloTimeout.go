@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	namePrompt := prompt.CliPrompt{
+	namePrompt := prompt.Prompt{
 		PromptMessage: "Enter Name",
 	}
 

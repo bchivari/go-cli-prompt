@@ -28,7 +28,7 @@ func TestCliPrompt_SetOptions(t *testing.T) {
 				AllowNil:      false,
 			},
 			args: args{
-				opts: []Opt{func(p *CliPrompt) error {
+				opts: []Opt{func(p *Prompt) error {
 					p.IsPassword = true
 					p.MapKey = "testkey"
 					return nil
@@ -43,7 +43,7 @@ func TestCliPrompt_SetOptions(t *testing.T) {
 				AllowNil:      false,
 			},
 			args: args{
-				opts: []Opt{func(p *CliPrompt) error {
+				opts: []Opt{func(p *Prompt) error {
 					p.IsPassword = true
 					p.MapKey = "testkey"
 					return fmt.Errorf("some error")
@@ -54,7 +54,7 @@ func TestCliPrompt_SetOptions(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := &CliPrompt{
+			h := &Prompt{
 				PromptMessage: tt.fields.PromptMessage,
 				AllowNil:      tt.fields.AllowNil,
 			}
@@ -66,14 +66,14 @@ func TestCliPrompt_SetOptions(t *testing.T) {
 }
 
 func TestWithWriter(t *testing.T) {
-	p := &CliPrompt{PromptMessage: "My Message"}
+	p := &Prompt{PromptMessage: "My Message"}
 	myWriter := bufio.NewWriter(bytes.NewBufferString("test"))
 	p.SetOptions(WithWriter(myWriter))
 	assertEqual(t, myWriter, p.outputWriter)
 }
 
 func TestWithReader(t *testing.T) {
-	p := &CliPrompt{PromptMessage: "My Message"}
+	p := &Prompt{PromptMessage: "My Message"}
 	myReader := bufio.NewReader(bytes.NewBufferString("test"))
 	p.SetOptions(WithReader(myReader))
 	assertEqual(t, myReader, p.inputReader)
