@@ -22,7 +22,7 @@ supplied.
 ### Simple Prompt
 
 * A simple example of how to display a single prompt
-* [See code...](http://www.google.ca)
+* [See code...](https://github.com/bchivari/go-cli-prompt/blob/master/examples/simple/sayhello.go)
 
 *Code*
 ```golang
@@ -45,8 +45,7 @@ Hello Bob!
 ```
 ### Multi-Prompt
 
-* An example that demonstrates how to chain together multiple prompts
-* [See code...](http://www.google.ca)
+* [See code...](https://github.com/bchivari/go-cli-prompt/blob/master/examples/chain/twoQuestionChain.go)
 
 *Code*
 ```golang
@@ -100,7 +99,7 @@ Hello Bob, you are 50 years old!
 
 ### Simple Prompt With Regexp Validation
 
-* [See code...](http://www.google.ca)
+* [See code...](https://github.com/bchivari/go-cli-prompt/blob/master/examples/simpleValidationRegex/sayhelloValidateWithRegex.go)
 
 *Code*
 ```golang
@@ -129,7 +128,7 @@ Hello Bob!
 
 ### Prompt With Default Value and Custom Validation
 
-* [See code...](http://www.google.ca)
+* [See code...](https://github.com/bchivari/go-cli-prompt/blob/master/examples/simpleValidationFunc/sayhelloValidateWithFunc.go)
 
 *Code*
 ```golang
