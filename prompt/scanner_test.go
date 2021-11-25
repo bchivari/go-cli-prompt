@@ -34,7 +34,7 @@ func TestMockScanner_Err(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &MockScanner{
+			s := &mockScanner{
 				returnTextFifo: tt.fields.returnTextFifo,
 				returnError:    tt.fields.returnError,
 			}
@@ -74,7 +74,7 @@ func TestMockScanner_Scan(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &MockScanner{
+			s := &mockScanner{
 				returnTextFifo: tt.fields.returnTextFifo,
 				returnError:    tt.fields.returnError,
 			}
@@ -114,7 +114,7 @@ func TestMockScanner_Text(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &MockScanner{
+			s := &mockScanner{
 				returnTextFifo: tt.fields.returnTextFifo,
 				returnError:    tt.fields.returnError,
 			}
@@ -157,7 +157,7 @@ func TestMockScanner_TextMultiCall(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &MockScanner{
+			s := &mockScanner{
 				returnTextFifo: tt.fields.returnTextFifo,
 				returnError:    tt.fields.returnError,
 			}

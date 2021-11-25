@@ -192,7 +192,7 @@ func TestPrompt_Display(t *testing.T) {
 		promptMessage1              = "Enter Name1"
 		responseText                = "Bobby"
 		invalidInputMessage         = "badinput"
-		mockScanner         scanner = &MockScanner{
+		mockScanner         scanner = &mockScanner{
 			returnTextFifo: nil,
 			returnError:    fmt.Errorf("some scanner error"),
 		}
@@ -622,7 +622,7 @@ func TestPrompt_DisplayWithContext(t *testing.T) {
 		responseText              = "Bobby"
 		ctxWithTimeout, _         = context.WithTimeout(context.Background(), time.Millisecond*250)
 		ctxWithoutTimeout         = context.Background()
-		mockScanner       scanner = &MockScanner{
+		mockScanner       scanner = &mockScanner{
 			returnTextFifo: nil,
 			returnError:    fmt.Errorf("some scanner error"),
 		}

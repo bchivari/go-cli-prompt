@@ -31,13 +31,13 @@ func (s *defaultScanner) Text() string {
 	return s.scanner.Text()
 }
 
-// MockScanner to enable testing. Emits elements in Fifo until empty then returns error
-type MockScanner struct {
+// mockScanner to enable testing. Emits elements in Fifo until empty then returns error
+type mockScanner struct {
 	returnTextFifo []string
 	returnError    error
 }
 
-func (s *MockScanner) popText() string {
+func (s *mockScanner) popText() string {
 	if len(s.returnTextFifo) > 0 {
 		ret := s.returnTextFifo[0]
 		s.returnTextFifo[0] = ""
@@ -47,17 +47,17 @@ func (s *MockScanner) popText() string {
 	return ""
 }
 
-func (s *MockScanner) Scan() bool {
+func (s *mockScanner) Scan() bool {
 	return len(s.returnTextFifo) > 0
 }
 
-func (s *MockScanner) Err() error {
+func (s *mockScanner) Err() error {
 	if len(s.returnTextFifo) > 0 {
 		return nil
 	}
 	return s.returnError
 }
 
-func (s *MockScanner) Text() string {
+func (s *mockScanner) Text() string {
 	return s.popText()
 }

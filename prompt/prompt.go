@@ -26,8 +26,8 @@ const (
 
 var (
 	// Errors
-	missingKeyError     = errors.New("'MapKey' field is missing from one more more CliPrompts")
-	inputErrorTemplate  = "got irrecoverable input error: %v"
+	errMissingKey      = errors.New("'MapKey' field is missing from one more more CliPrompts")
+	inputErrorTemplate = "got irrecoverable input error: %v"
 	defaultOutputWriter = os.Stdout
 	defaultInputReader  = os.Stdin
 )
@@ -141,7 +141,7 @@ func (c *PromptList) Show() (map[string]interface{}, error) {
 	ret := make(map[string]interface{})
 	for _, p := range *c {
 		if p.MapKey == "" {
-			return nil, missingKeyError
+			return nil, errMissingKey
 		}
 		ret[p.MapKey], _ = p.Show()
 	}
@@ -253,21 +253,20 @@ func (h *Prompt) validateAgainstFuncIfProvided(s string) bool {
 func (h *Prompt) readInput() (string, error) {
 	if !h.IsPassword {
 		return h.readRegularInput()
-	} else {
-		defer func() {
-			// Print blank line after input is received since a non-echoing password reader won't show newline
-			fmt.Fprintln(h.getOutputWriter(), "")
-		}()
-		return h.readPasswordInput()
 	}
+
+	defer func() {
+		// Print blank line after input is received since a non-echoing password reader won't show newline
+		fmt.Fprintln(h.getOutputWriter(), "")
+	}()
+	return h.readPasswordInput()
 }
 
 func (h *Prompt) readPasswordInput() (string, error) {
 	if h.inputReader != nil {
 		return h.readPasswordFromIoReader()
-	} else {
-		return h.readPasswordFromStdin()
 	}
+	return h.readPasswordFromStdin()
 }
 
 func (h *Prompt) readPasswordFromStdin() (string, error) {
