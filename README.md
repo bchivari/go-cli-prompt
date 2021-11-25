@@ -1,8 +1,9 @@
 # go-cli-prompt
-[![Go Reference](https://pkg.go.dev/badge/golang.org/x/example.svg)](https://pkg.go.dev/golang.org/x/example)
-[![Test](https://github.com/bchivari/go-cli-prompt/actions/workflows/test.yml/badge.svg)](https://github.com/bchivari/go-cli-prompt/actions/workflows/test.yml)
-[!codecov](https://codecov.io/gh/bchivari/go-cli-prompt)
+[![Test Matrix](https://github.com/bchivari/go-cli-prompt/actions/workflows/test-matrix.yml/badge.svg)](https://github.com/bchivari/go-cli-prompt/actions/workflows/test-matrix.yml)
+[![codecov](https://codecov.io/gh/bchivari/go-cli-prompt/branch/master/graph/badge.svg?token=U63OAKQlqg)](https://codecov.io/gh/bchivari/go-cli-prompt)
 [![Go Report Card](https://goreportcard.com/badge/github.com/bchivari/go-cli-prompt)](https://goreportcard.com/report/github.com/bchivari/go-cli-prompt)
+
+[comment]: <> ([![Go Reference]&#40;https://pkg.go.dev/badge/golang.org/x/example.svg&#41;]&#40;https://pkg.go.dev/golang.org/x/example&#41;)
 
 **go-cli-prompt** is a simple go library that can be used to display a prompt (or series of prompts) for user
 input and collect the result(s). It is highly configurable and provides a framework for supplying default values,
@@ -177,8 +178,9 @@ IP is 192.168.1.1!
 * [See code...](https://github.com/bchivari/go-cli-prompt/tree/master/examples)
 
 ## Full Documentation
+Coming Soon
 
-[![Go Reference](https://pkg.go.dev/badge/golang.org/x/example.svg)](https://pkg.go.dev/golang.org/x/example)
+[comment]: <> ([![Go Reference]&#40;https://pkg.go.dev/badge/golang.org/x/example.svg&#41;]&#40;https://pkg.go.dev/golang.org/x/example&#41;)
 
 
 ## Authors
